@@ -1,140 +1,140 @@
 # Açaí Finance
 
-### SaaS / Multi-Tenant / Marketplace / Payments
+### SaaS / Multi-tenant / Marketplace / Pagamentos
 
-## Overview
+## Visão Geral
 
-Açaí Finance is a private commercial platform documented here as a safe public case study.
+Açaí Finance é uma plataforma comercial privada documentada aqui como um estudo de caso público e seguro.
 
-The product combines SaaS subscription management, tenant-isolated business data, catalog and order operations, POS flows, Mercado Pago payments, marketplace settlement and administrative tooling.
+O produto combina gestão de assinatura SaaS, isolamento de dados por tenant, catálogo e pedidos, fluxo de PDV, pagamentos Mercado Pago, settlement de marketplace e ferramentas administrativas.
 
-This repository does not contain proprietary source code, credentials, production URLs, customer data, database dumps or infrastructure secrets.
+Este repositório não contém código proprietário, credenciais, URLs de produção, dados de clientes, dumps de banco ou secrets de infraestrutura.
 
-## Problem
+## Problema
 
-Food and retail operations need more than a public catalog. They need product management, order control, sales tracking, cash operations, tenant-specific settings, payment processing and administrative visibility.
+Operações de alimentação e varejo precisam de mais do que um catálogo público. Elas precisam controlar produtos, pedidos, vendas, caixa, fechamento, configurações por negócio, pagamentos e visibilidade administrativa.
 
-The platform also needs to onboard and operate multiple businesses while keeping each tenant isolated, enforcing subscription status and supporting marketplace payment flows without exposing financial consistency to frontend trust.
+A plataforma também precisa operar múltiplas empresas, manter isolamento entre tenants, respeitar o status de assinatura e suportar fluxos de pagamento de marketplace sem confiar decisões financeiras ao frontend.
 
-## Solution
+## Solução
 
-The private codebase implements a custom PHP backend with a React frontend and a MySQL data layer organized around tenant context.
+O código privado implementa um backend customizado em PHP, frontend React e camada de dados MySQL organizada em torno de contexto de tenant.
 
-The system resolves tenants through request context, applies authentication and tenant checks at the middleware layer, exposes public catalog and authenticated business APIs, and integrates with Mercado Pago for Pix, card, POS and marketplace payment operations.
+O sistema resolve o tenant pelo contexto da requisição, aplica autenticação e validação multi-tenant na camada de middleware, expõe APIs públicas e autenticadas, e integra com Mercado Pago para Pix, cartão, PDV/Point e operações de marketplace.
 
-## Product Flow
+## Fluxo do Produto
 
 ```mermaid
 flowchart LR
-    A[Tenant onboarding] --> B[Plan and subscription]
-    B --> C[Tenant workspace]
-    C --> D[Products and catalog]
-    D --> E[Customer order]
-    E --> F[Pix or card payment]
-    F --> G[Payment confirmation]
-    G --> H[Order status]
-    H --> I[Wallet ledger]
-    I --> J[Admin and seller operations]
+    A[Onboarding do tenant] --> B[Plano e assinatura]
+    B --> C[Workspace do tenant]
+    C --> D[Produtos e catalogo]
+    D --> E[Pedido do cliente]
+    E --> F[Pagamento Pix ou cartao]
+    F --> G[Confirmacao do pagamento]
+    G --> H[Status do pedido]
+    H --> I[Ledger da carteira]
+    I --> J[Operacao admin e vendedor]
 ```
 
-## System Architecture
+## Arquitetura do Sistema
 
 ```mermaid
 flowchart TB
-    A[React admin, POS and catalog UI] --> B[Custom PHP REST API]
-    B --> C[Auth middleware]
-    C --> D[Tenant middleware and TenantContext]
-    D --> E[Business services]
-    E --> F[(MySQL shared tenant data layer)]
+    A[UI React admin, PDV e catalogo] --> B[API REST PHP customizada]
+    B --> C[Middleware de autenticacao]
+    C --> D[Middleware de tenant e TenantContext]
+    D --> E[Servicos de negocio]
+    E --> F[(MySQL com dados por tenant)]
 
-    E --> G[Subscription billing]
-    E --> H[Order and catalog services]
-    E --> I[Payment transactions]
-    E --> J[Wallet ledger]
+    E --> G[Assinatura SaaS]
+    E --> H[Pedidos e catalogo]
+    E --> I[Transacoes de pagamento]
+    E --> J[Ledger de carteira]
 
-    I --> K[Mercado Pago Pix, card and Point]
-    K --> L[Webhooks and reconciliation]
+    I --> K[Mercado Pago Pix, cartao e Point]
+    K --> L[Webhooks e reconciliacao]
     L --> I
 ```
 
-## Tech Stack
+## Stack Técnica
 
-- Backend: PHP 8.2, custom PSR-style application structure, PDO, REST endpoints.
-- Frontend: React 18, Vite, Tailwind CSS, Axios, Recharts, lucide-react.
-- Database: MySQL with shared tables and tenant-scoped records.
-- Payments: Mercado Pago Pix, card payments, Point/POS flows, OAuth connections, marketplace application fee.
-- Infrastructure: Docker, Cloud Build, Cloud Run, Cloud SQL and Secret Manager references in private deployment documentation.
+- Backend: PHP 8.2, aplicação customizada, PDO e endpoints REST.
+- Frontend: React 18, Vite, Tailwind CSS, Axios, Recharts e lucide-react.
+- Banco de dados: MySQL com tabelas compartilhadas e registros escopados por tenant.
+- Pagamentos: Mercado Pago Pix, cartão, Point/PDV, OAuth por tenant e taxa de aplicação para marketplace.
+- Infraestrutura: Docker, Cloud Build, Cloud Run, Cloud SQL e Secret Manager documentados no repositório privado.
 
-## Backend Engineering
+## Engenharia Backend
 
-The backend exposes APIs for authentication, tenant management, subscriptions, plans, users, products, categories, catalog settings, public orders, POS sessions, sales, payments, dashboard metrics and super-admin operations.
+O backend expõe APIs para autenticação, gestão de tenants, assinaturas, planos, usuários, produtos, categorias, configurações de catálogo, pedidos públicos, sessões de PDV, vendas, pagamentos, métricas de dashboard e operações de super-admin.
 
-Tenant context is resolved before business handlers execute. The private code includes middleware that rejects cross-tenant access and disables unsafe query-based tenant switching in production.
+O contexto de tenant é resolvido antes dos handlers de negócio. O código privado contém middleware que bloqueia acesso cross-tenant e desabilita troca insegura de tenant por query parameter em produção.
 
-Subscription state is part of the platform access path, allowing the application to control whether a tenant can operate the workspace and public catalog flows.
+O status da assinatura faz parte do caminho de acesso da plataforma, permitindo controlar se um tenant pode operar o workspace e os fluxos públicos de catálogo.
 
-## Data / Database
+## Dados / Banco de Dados
 
-The data model includes SaaS core tables for plans, tenants, subscriptions and subscription payments, plus operational tables for catalog, products, orders, payment transactions, wallet accounts, wallet ledger entries and withdrawal requests.
+O modelo de dados inclui tabelas SaaS para planos, tenants, assinaturas e pagamentos de assinatura, além de tabelas operacionais para catálogo, produtos, pedidos, transações de pagamento, carteiras, ledger financeiro e solicitações de saque.
 
-Financial movement is represented through payment transaction records and an append-only wallet ledger. The ledger design supports idempotent settlement and reversal entries for cases such as refunds and chargebacks.
+A movimentação financeira é representada por registros de transação e por um ledger append-only. Esse desenho permite settlement idempotente e lançamentos de reversão para reembolsos e chargebacks.
 
-## Integrations
+## Integrações
 
-- Mercado Pago payment creation for Pix and card flows.
-- Mercado Pago OAuth connections for tenant-specific marketplace operations.
-- Marketplace application fee calculation performed on the backend.
-- Webhook processing with provider refetch and duplicate-event handling.
-- POS/Point payment routes for in-person operations.
+- Criação de pagamentos Mercado Pago para Pix e cartão.
+- OAuth Mercado Pago para operações de marketplace por tenant.
+- Cálculo de taxa de aplicação no backend.
+- Processamento de webhooks com refetch no provedor e tratamento de duplicidade.
+- Rotas de pagamento presencial por POS/Point.
 
-## Security
+## Segurança
 
-Security-relevant implementation details confirmed in the private codebase:
+Detalhes confirmados no código privado:
 
-- Bearer token authentication stored server-side.
-- Tenant authorization checked against authenticated user context.
-- Production tenant resolution hardened against query-parameter spoofing.
-- Mercado Pago webhook signature validation.
-- Backend-owned payment amount and fee calculation.
-- Card flows use provider tokenization rather than storing raw card data.
-- Case study repository created without private Git history.
+- Autenticação por bearer token persistida no servidor.
+- Autorização de tenant validada contra o usuário autenticado.
+- Resolução de tenant em produção protegida contra spoofing por query parameter.
+- Validação de assinatura de webhook Mercado Pago.
+- Cálculo de valor e taxa de pagamento feito no backend.
+- Fluxos de cartão usam tokenização do provedor, sem armazenar dados brutos do cartão.
+- Repositório de estudo de caso criado sem histórico Git privado.
 
-## Engineering Challenges
+## Desafios de Engenharia
 
-- Tenant isolation across public catalog, authenticated workspace, POS and super-admin paths.
-- Preventing cross-tenant access when requests contain tenant headers, hosts or authenticated tokens.
-- Keeping order status, payment status and wallet ledger entries consistent.
-- Handling Mercado Pago webhooks idempotently.
-- Supporting marketplace settlement while preserving backend ownership of fee calculation.
-- Avoiding duplicate ledger effects during retries or repeated webhook delivery.
-- Operating production deployment without exposing environment secrets.
+- Isolamento de tenant em catálogo público, workspace autenticado, PDV e super-admin.
+- Prevenção de acesso cross-tenant com headers, hosts e tokens autenticados.
+- Consistência entre status de pedido, status de pagamento e ledger da carteira.
+- Processamento idempotente de webhooks Mercado Pago.
+- Settlement de marketplace com cálculo de taxa controlado pelo backend.
+- Evitar efeitos duplicados no ledger durante retries ou webhooks repetidos.
+- Operação de deploy em produção sem expor secrets de ambiente.
 
-## Testing & Reliability
+## Testes e Confiabilidade
 
-The private project contains focused tests for tenant isolation, marketplace Pix split flow, Pix hardening, card settlement, recurring subscription safety, payment confirmation, POS payments, POS webhooks, catalog behavior and analytics flows.
+O projeto privado contém testes focados em isolamento multi-tenant, split Pix de marketplace, hardening de Pix, settlement com cartão, segurança de assinatura recorrente, confirmação de pagamento, pagamentos POS, webhooks POS, catálogo e métricas operacionais.
 
-The marketplace payment tests validate scenarios such as duplicate webhooks, forged or divergent webhook payloads, backend fee calculation, cross-tenant webhook protection and ledger effects.
+Os testes de marketplace validam cenários como webhooks duplicados, payloads divergentes, cálculo de taxa no backend, proteção contra webhook cross-tenant e efeitos no ledger.
 
-## Infrastructure & Deployment
+## Infraestrutura e Deploy
 
-The private repository includes Docker and Google Cloud deployment material, including Cloud Build, Cloud Run, Cloud SQL and Secret Manager usage. Public documentation intentionally avoids exact project identifiers, domains, service names and operational secrets.
+O repositório privado inclui material de deploy com Docker e Google Cloud, incluindo Cloud Build, Cloud Run, Cloud SQL e Secret Manager. A documentação pública evita publicar identificadores de projeto, domínios, nomes de serviço e detalhes operacionais sensíveis.
 
-## Production
+## Produção
 
-Production-oriented deployment and operations documentation exists in the private codebase. This public case study documents the architecture and engineering decisions without publishing production endpoints, credentials or internal runbooks.
+Existe documentação de deploy e operação em produção no código privado. Este estudo de caso expõe arquitetura e decisões de engenharia sem publicar endpoints, credenciais ou runbooks internos.
 
-## Screenshots
+## Capturas de Tela
 
-No screenshots are published in this repository. Existing assets may contain merchant, product, order or operational data and should only be used publicly after sanitization.
+Não há screenshots publicados neste repositório. Os assets existentes podem conter dados de lojistas, produtos, pedidos ou operação e só devem ser usados publicamente após sanitização.
 
-## My Role / What I Built
+## Meu Papel / O Que Construí
 
-This case demonstrates full-stack product engineering across SaaS architecture, tenant isolation, backend APIs, React interfaces, payments, marketplace settlement, database modeling, tests and production deployment preparation.
+Este case demonstra engenharia de produto full stack: arquitetura SaaS, isolamento multi-tenant, APIs backend, interfaces React, pagamentos, settlement de marketplace, modelagem de dados, testes e preparação para deploy em produção.
 
-## Key Engineering Decisions
+## Decisões Técnicas Principais
 
-- Use tenant context as a first-class backend concern instead of relying on frontend filtering.
-- Keep payment amount and fee calculation on the server.
-- Model financial settlement through transaction records and an append-only ledger.
-- Treat webhooks as retriable and potentially duplicated.
-- Keep the public case study separate from the commercial repository and its Git history.
+- Tratar contexto de tenant como responsabilidade de backend, não como filtro de frontend.
+- Manter cálculo de valor e taxa de pagamento no servidor.
+- Modelar settlement financeiro com transações e ledger append-only.
+- Tratar webhooks como eventos repetíveis e potencialmente duplicados.
+- Manter o estudo de caso público separado do repositório comercial e de seu histórico Git.
