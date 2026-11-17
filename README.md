@@ -2,13 +2,15 @@
 
 ### SaaS / Multi-tenant / Marketplace / Pagamentos
 
+No ar em [acaifinance.com.br](https://acaifinance.com.br)
+
 ## Visão Geral
 
-Açaí Finance é uma plataforma comercial privada documentada aqui como um estudo de caso público e seguro.
+Açaí Finance é uma plataforma SaaS comercial em produção. O código é privado; este repositório documenta o produto como estudo de caso.
 
 O produto combina gestão de assinatura SaaS, isolamento de dados por tenant, catálogo e pedidos, fluxo de PDV, pagamentos Mercado Pago, settlement de marketplace e ferramentas administrativas.
 
-Este repositório não contém código proprietário, credenciais, URLs de produção, dados de clientes, dumps de banco ou secrets de infraestrutura.
+Este repositório não contém código proprietário, credenciais, dados de clientes, dumps de banco ou secrets de infraestrutura.
 
 ## Problema
 
@@ -63,7 +65,7 @@ flowchart TB
 - Frontend: React 18, Vite, Tailwind CSS, Axios, Recharts e lucide-react.
 - Banco de dados: MySQL com tabelas compartilhadas e registros escopados por tenant.
 - Pagamentos: Mercado Pago Pix, cartão, Point/PDV, OAuth por tenant e taxa de aplicação para marketplace.
-- Infraestrutura: Docker, Cloud Build, Cloud Run, Cloud SQL e Secret Manager documentados no repositório privado.
+- Infraestrutura: Docker, Nginx e MySQL 8 em VPS Linux; antes, Cloud Build, Cloud Run e Cloud SQL no Google Cloud.
 
 ## Engenharia Backend
 
@@ -117,7 +119,9 @@ Os testes de marketplace validam cenários como webhooks duplicados, payloads di
 
 ## Infraestrutura e Deploy
 
-O repositório privado inclui material de deploy com Docker e Google Cloud, incluindo Cloud Build, Cloud Run, Cloud SQL e Secret Manager. A documentação pública evita publicar identificadores de projeto, domínios, nomes de serviço e detalhes operacionais sensíveis.
+A aplicação nasceu no Google Cloud (Cloud Build, Cloud Run, Cloud SQL e Secret Manager). Com carga real de cerca de 900 requisições por dia e um banco pequeno, infraestrutura gerenciada não se pagava, então migrei a produção para uma VPS compartilhada, isolada em Docker com MySQL próprio sem porta publicada.
+
+A migração teve janela planejada de cerca de 7 minutos, conferência tabela a tabela antes de desligar a nuvem e backups cifrados do estado final. A nuvem antiga ficou em modo de manutenção durante a virada para que nenhum resolver de DNS atrasado gravasse num banco divergente. O tempo de resposta caiu de 0,3–0,9 s para cerca de 0,13 s, e o custo de nuvem foi praticamente zerado.
 
 ## Produção
 
